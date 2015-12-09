@@ -24,6 +24,18 @@ public class JSONEchoServlet extends HttpServlet {
             JSONInputStream inFromClient = new JSONInputStream(request.getInputStream());
             JSONOutputStream outToClient = new JSONOutputStream(response.getOutputStream());
 
+            // Nasty path: How to simulate a lag on the server.
+            // This error is what I got on the client side when I used this sleep()
+            // and then manually shut down the server: java.net.SocketException: Connection reset.
+//            Thread.currentThread().sleep(100000);
+
+            // Nasty path: connect the client and server initially. Send a message to the server while having this line
+            // active in the current position of this server class: Thread.currentThread().sleep(100000);
+            // Then kill the client before the server can get the hashmap.
+            // Result: The client ended with "process finished with exit code -1". Server gave me no errors. It gave:
+            // Just got:{message=sending this, command=Speak} from client
+            // just sent {message=sending this, command=Done}
+
             HashMap<String, Object> dataMap = (HashMap) inFromClient.readObject();
             dataMap.put("toClient", outToClient);
 
@@ -36,6 +48,6 @@ public class JSONEchoServlet extends HttpServlet {
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doGet(request,response);
+        doPost(request,response);
     }
 }
